@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spark-master
+  labels:
+    app: spark
+spec:
+  containers:
+    - name: spark-master
+      image: bitnami/spark:latest
+      ports:
+        - containerPort: 7077
+        - containerPort: 8080
+      env:
+        - name: SPARK_MODE
+          value: master
+        - name: SPARK_MASTER_HOST
+          value: spark-master
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "1"
+        limits:
+          memory: "2Gi"
+          cpu: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-master-service
+spec:
+  selector:
+    app: spark
+  ports:
+    - protocol: TCP
+      port: 7077
+      targetPort: 7077
+      name: spark-master-cluster
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      name: spark-master-web
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spark-worker
+  labels:
+    app: spark
+spec:
+  containers:
+    - name: spark-worker
+      image: bitnami/spark:latest
+      env:
+        - name: SPARK_MODE
+          value: worker
+        - name: SPARK_MASTER_URL
+          value: spark://spark-master-service:7077
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "1"
+        limits:
+          memory: "2Gi"
+          cpu: "1"
